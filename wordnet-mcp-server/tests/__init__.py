@@ -1,0 +1,3 @@
+"""
+WordNet MCP Server Tests
+""" 
