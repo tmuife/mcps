@@ -2,9 +2,35 @@ import nltk
 from nltk.corpus import wordnet as wn
 from fastmcp import FastMCP
 import argparse
+from decouple import config
+from starlette.middleware.base import BaseHTTPMiddleware
+import uvicorn
+# Authentication middleware
+def check_auth(request):
+    """Check if the request has valid Bearer token authentication."""
+    #auth_token = os.getenv("FASTMCP_AUTH_TOKEN")
+    auth_token = config("api-token")
+    if not auth_token:
+        return True  # No auth required if token not set
 
-# 初始化FastMCP服务器
-mcp = FastMCP("WordNet MCP")
+    auth_header = request.headers.get("authorization", "")
+    if not auth_header.startswith("Bearer "):
+        from starlette.responses import JSONResponse
+        return JSONResponse({"error": "Missing or invalid Authorization header"}, status_code=401)
+
+    token = auth_header[7:]  # Remove "Bearer " prefix
+    if token != auth_token:
+        from starlette.responses import JSONResponse
+        return JSONResponse({"error": "Invalid token"}, status_code=401)
+    return True
+class AuthMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        auth_result = check_auth(request)
+        if auth_result != True:
+            return auth_result
+        return await call_next(request)
+
+mcp = FastMCP(name="WordNet MCP")
 
 # 确保WordNet数据已下载
 def download_wordnet():
@@ -108,4 +134,9 @@ if __name__ == "__main__":
         mcp.run(transport='stdio')
     else:
         download_wordnet()
-        mcp.run(transport=args.transport, host=args.host, port=args.port)
+        #mcp.run(transport=args.transport, host=args.host, port=args.port)
+        app = mcp.http_app()
+        auth_token = config("api-token")
+        if auth_token:
+            app.add_middleware(AuthMiddleware)
+            uvicorn.run(app, host=args.host, port=args.port)
