@@ -1,0 +1,35 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  pypi:
+    name: Publish to PyPI & Create GitHub Release
+    runs-on: ubuntu-latest
+    environment:
+      name: release
+    permissions:
+      id-token: write
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync -v
+      - run: uv build -v
+      - name: Smoke test (wheel)
+        run: uv run -v --isolated --with dist/*.whl -m pytest -k test_smoke
+      - name: Smoke test (source distribution)
+        run: uv run -v --isolated --with dist/*.tar.gz -m pytest -k test_smoke
+      - run: uv publish  --trusted-publishing always
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "dist/*.whl,dist/*.tar.gz"
+          generateReleaseNotes: true
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
