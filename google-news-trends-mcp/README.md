@@ -154,3 +154,8 @@ npx @modelcontextprotocol/inspector uv run google-news-trends-mcp
 cd path/to/google/news/tends/mcp
 python -m pytest
 ```
+
+```bash
+playwright install chromium
+python -c "import nltk; nltk.download('punkt_tab')"
+```

@@ -6,7 +6,7 @@ import argparse
 import uvicorn
 import base64
 from PIL import Image
-import io
+import io, os
 import requests
 from decouple import config
 import json
@@ -47,7 +47,13 @@ def describe_image_by_url(url: str) -> str:
         - Network timeout.
 
     """
-    llmurl = config("vllmurl", cast=str)
+
+    # 获取变量（环境变量优先，.env作为fallback）
+    llmurl = os.environ.get('VLLMURL')  # 优先从环境变量读取
+    if not llmurl:
+        #vllm_url = os.environ.get('vllmurl')  # 或从.env读取（大小写敏感）
+        llmurl = config("vllmurl", cast=str)
+    print(f"VLLM URL: {llmurl}")
     headers = {
         "Content-Type": "application/json",
         "Authorization": "Bearer YOUR_API_KEY"
