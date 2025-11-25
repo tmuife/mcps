@@ -18,12 +18,12 @@ import re
 import sys
 
 # Import models
-from documentation_mcp_server.models import (
+from models import (
     SearchResult,
 )
 
 # Import utility functions
-from documentation_mcp_server.util import (
+from util import (
     extract_content_from_html,
     format_documentation_result,
     is_html_content
