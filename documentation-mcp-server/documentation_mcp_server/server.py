@@ -18,12 +18,12 @@ import re
 import sys
 
 # Import models
-from oci_documentation_mcp_server.models import (
+from documentation_mcp_server.models import (
     SearchResult,
 )
 
 # Import utility functions
-from oci_documentation_mcp_server.util import (
+from documentation_mcp_server.util import (
     extract_content_from_html,
     format_documentation_result,
     is_html_content
